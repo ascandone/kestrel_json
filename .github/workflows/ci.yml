@@ -16,3 +16,7 @@ jobs:
         run: kestrel deps install
       - name: Typecheck the project
         run: kestrel check
+      - name: Run tests
+        run: kestrel run Specs
+      - name: Check docs are in sync
+        run: kestrel docs check
