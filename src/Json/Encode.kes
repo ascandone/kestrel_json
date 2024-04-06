@@ -12,4 +12,6 @@ pub let float: Fn(Float) -> Json = wrap
 
 pub let int: Fn(Int) -> Json = wrap
 
+extern pub let list: Fn(Fn(a) -> Json, List<a>) -> Json
+
 extern pub let object: Fn(List<Tuple2<String, Json>>) -> Json

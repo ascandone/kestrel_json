@@ -1,7 +1,11 @@
 import Expect
-import Json/Decode.{DecodeError(..)}
+import Json/Decode.{Error(..)}
 import Json/Encode
 import Test
+
+let identity = fn x {
+  x
+}
 
 pub let decode_tests = Test.describe("Json/Decode", [
   Test.describe("of", [
@@ -97,6 +101,41 @@ pub let decode_tests = Test.describe("Json/Decode", [
       ])
       |> Json/Decode.decode(decoder)
       |> Expect.equal(Ok(("field-value", 42)))
+    }),
+  ]),
+  Test.describe("list", [
+    Test.test("fails to decode values that are not arrays", fn {
+      let decoder = Json/Decode.list(Json/Decode.int);
+      Json/Encode.null
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Err(Failure("a list")))
+    }),
+    Test.test("succeed to decode an empty list", fn {
+      let decoder = Json/Decode.list(Json/Decode.int);
+      Json/Encode.list(Json/Encode.string, [])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok([]))
+    }),
+    Test.test("succeed to decode a list of values that succeed to decode", fn {
+      let decoder = Json/Decode.list(Json/Decode.int);
+      Json/Encode.list(Json/Encode.int, [10, 20, 30])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok([10, 20, 30]))
+    }),
+    Test.test("succeed to decode a list of Json values", fn {
+      let decoder = Json/Decode.list(Json/Decode.int);
+      Json/Encode.list(identity, [Json/Encode.int(0), Json/Encode.int(1)])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok([0, 1]))
+    }),
+    Test.test("fails to decode a list of values that fails to decode", fn {
+      let decoder = Json/Decode.list(Json/Decode.int);
+      Json/Encode.list(identity, [
+        Json/Encode.int(0),
+        Json/Encode.string("not an int"),
+      ])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Err(Index(1, Failure("a number"))))
     }),
   ]),
   Test.describe("optional_field", [

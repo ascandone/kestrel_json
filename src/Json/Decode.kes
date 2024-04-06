@@ -1,13 +1,14 @@
 import Json/Encode.{Json}
 
-pub(..) type DecodeError {
+pub(..) type Error {
   Failure(String),
-  Field(String, DecodeError),
-  OneOf(List<DecodeError>),
+  Field(String, Error),
+  Index(Int, Error),
+  OneOf(List<Error>),
 }
 
 pub type Decoder<a> {
-  Decoder(Fn(Json) -> Result<a, DecodeError>),
+  Decoder(Fn(Json) -> Result<a, Error>),
 }
 
 pub let of = fn x {
@@ -32,10 +33,12 @@ extern pub let float: Decoder<Float>
 
 extern pub let field: Fn(String, Decoder<a>) -> Decoder<a>
 
+extern pub let list: Fn(Decoder<a>) -> Decoder<List<a>>
+
 extern pub let optional_field: Fn(String, Decoder<a>) -> Decoder<Option<a>>
 
 /// Run a decoder on a `Json` value
-extern pub let decode: Fn(Json, Decoder<a>) -> Result<a, DecodeError>
+extern pub let decode: Fn(Json, Decoder<a>) -> Result<a, Error>
 
 extern pub let parse_json: Fn(String) -> Result<Json, String>
 

@@ -117,6 +117,41 @@ function Json$Decode$optional_field(fieldName, fieldDecoder) {
   });
 }
 
+function Json$Decode$list(decoder) {
+  return Json$Decode$Decoder(({ repr: json }) => {
+    if (!Array.isArray(json)) {
+      return {
+        $: "Err",
+        a0: { $: "Failure", a0: "a list" },
+      };
+    }
+
+    let list = List$Nil;
+
+    for (let i = json.length - 1; i >= 0; i--) {
+      const value = json[i];
+      const decoded = decoder.a0(
+        value instanceof Json$Encode$Json ? value : new Json$Encode$Json(value)
+      );
+
+      if (decoded.$ === "Err") {
+        return {
+          $: "Err",
+          a0: {
+            $: "Index",
+            a0: 1,
+            a1: decoded.a0,
+          },
+        };
+      }
+
+      list = { $: "Cons", a0: decoded.a0 };
+    }
+
+    return { $: "Ok", a0: list };
+  });
+}
+
 function Json$Decode$decode(json, decoder) {
   return decoder.a0(json);
 }
