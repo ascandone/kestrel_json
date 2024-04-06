@@ -145,7 +145,7 @@ function Json$Decode$list(decoder) {
         };
       }
 
-      list = { $: "Cons", a0: decoded.a0 };
+      list = { $: "Cons", a0: decoded.a0, a1: list };
     }
 
     return { $: "Ok", a0: list };
