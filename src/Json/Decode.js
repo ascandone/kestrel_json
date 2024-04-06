@@ -85,6 +85,38 @@ function Json$Decode$field(fieldName, fieldDecoder) {
   });
 }
 
+function Json$Decode$optional_field(fieldName, fieldDecoder) {
+  return Json$Decode$Decoder(({ repr: json }) => {
+    if (json === null || typeof json !== "object") {
+      return {
+        $: "Err",
+        a0: { $: "Failure", a0: "an object" },
+      };
+    }
+
+    if (!(fieldName in json)) {
+      return { $: "Ok", a0: Option$None };
+    }
+
+    const res = fieldDecoder.a0(new Json$Encode$Json(json[fieldName]));
+    if (res.$ === "Err") {
+      return {
+        $: "Err",
+        a0: {
+          $: "Field",
+          a0: fieldName,
+          a1: res.a0,
+        },
+      };
+    }
+
+    return {
+      $: "Ok",
+      a0: { $: "Some", a0: res.a0 },
+    };
+  });
+}
+
 function Json$Decode$decode(json, decoder) {
   return decoder.a0(json);
 }

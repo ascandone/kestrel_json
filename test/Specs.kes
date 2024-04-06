@@ -99,6 +99,26 @@ pub let decode_tests = Test.describe("Json/Decode", [
       |> Expect.equal(Ok(("field-value", 42)))
     }),
   ]),
+  Test.describe("optional_field", [
+    Test.test("succeed to decode valid fields", fn {
+      let decoder = Json/Decode.optional_field("x", Json/Decode.int);
+      Json/Encode.object([("x", Json/Encode.int(42))])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok(Some(42)))
+    }),
+    Test.test("succeed absent fields", fn {
+      let decoder = Json/Decode.optional_field("x", Json/Decode.int);
+      Json/Encode.object([])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok(None))
+    }),
+    Test.test("fails to decode fields of wrong type", fn {
+      let decoder = Json/Decode.optional_field("x", Json/Decode.int);
+      Json/Encode.object([("x", Json/Encode.string("not an int"))])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Err(Field("x", Failure("a number"))))
+    }),
+  ]),
   Test.describe("parsed json", [
     Test.test("fail to parse a json from string", fn {
       Json/Decode.parse_json("not-a-json")
