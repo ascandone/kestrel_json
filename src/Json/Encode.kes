@@ -1,0 +1,15 @@
+import Tuple.{Tuple2(..)}
+
+extern pub type Json
+
+extern let wrap: Fn(a) -> Json
+
+extern pub let null: Json
+
+pub let string: Fn(String) -> Json = wrap
+
+pub let float: Fn(Float) -> Json = wrap
+
+pub let int: Fn(Int) -> Json = wrap
+
+extern pub let object: Fn(List<Tuple2<String, Json>>) -> Json

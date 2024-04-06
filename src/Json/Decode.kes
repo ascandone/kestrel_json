@@ -1,0 +1,88 @@
+import Json/Encode.{Json}
+
+pub(..) type DecodeError {
+  Failure(String),
+  Field(String, DecodeError),
+  OneOf(List<DecodeError>),
+}
+
+pub type Decoder<a> {
+  Decoder(Fn(Json) -> Result<a, DecodeError>),
+}
+
+pub let of = fn x {
+  Decoder(fn _ {
+    Ok(x)
+  })
+}
+
+pub let fail = fn reason {
+  Decoder(fn _ {
+    Err(Failure(reason))
+  })
+}
+
+extern pub let null: Decoder<Unit>
+
+extern pub let string: Decoder<String>
+
+extern pub let int: Decoder<Int>
+
+extern pub let float: Decoder<Float>
+
+extern pub let field: Fn(String, Decoder<a>) -> Decoder<a>
+
+/// Run a decoder on a `Json` value
+extern pub let decode: Fn(Json, Decoder<a>) -> Result<a, DecodeError>
+
+extern pub let parse_json: Fn(String) -> Result<Json, String>
+
+pub let one_of = fn decoders {
+  Decoder(fn json {
+    let helper = fn decoders, errs_acc {
+      match decoders {
+        Nil => Err(errs_acc),
+        decoder :: decoders => match decode(json, decoder) {
+          Err(err) => helper(decoders, err :: errs_acc),
+          Ok(decoded) => Ok(decoded),
+        },
+      }
+    };
+    match decoders {
+      Nil => Err(Failure("a non-empty list of decoders")),
+      decoders => {
+        decoders
+        |> List.reverse()
+        |> helper([])
+        |> Result.map_err(OneOf)
+      },
+    }
+  })
+}
+
+/// Parse a string and decode its json content
+pub let decode_string = fn str_json, decoder {
+  let#Result.and_then json = {
+    parse_json(str_json)
+    |> Result.map_err(Failure)
+  };
+  decode(json, decoder)
+}
+
+pub let and_then = fn Decoder(run), f {
+  Decoder(fn json {
+    match run(json) {
+      Ok(decoded) => {
+        let Decoder(run) = f(decoded);
+        run(json)
+      },
+      Err(err) => Err(err),
+    }
+  })
+}
+
+pub let map = fn decoder, f {
+  and_then(decoder, fn value {
+    of(f(value))
+  })
+}

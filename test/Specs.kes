@@ -1,0 +1,147 @@
+import Expect
+import Json/Decode.{DecodeError(..)}
+import Json/Encode
+import Test
+
+pub let decode_tests = Test.describe("Json/Decode", [
+  Test.test("succeed with `of`", fn {
+    let decoder = Json/Decode.of(42);
+    Json/Encode.null
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Ok(42))
+  }),
+  Test.test("fail with `fail`", fn {
+    let decoder = Json/Decode.fail("failure reason");
+    Json/Encode.null
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Err(Failure("failure reason")))
+  }),
+  Test.test("succeed to decode a string", fn {
+    let decoder = Json/Decode.string;
+    Json/Encode.string("example_string")
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Ok("example_string"))
+  }),
+  Test.test("succeed to decode a float", fn {
+    let decoder = Json/Decode.float;
+    Json/Encode.float(42.2)
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Ok(42.2))
+  }),
+  Test.test("map succeeded values", fn {
+    let decoder = {
+      Json/Decode.of(42)
+      |> Json/Decode.map(fn x {
+        x + 1
+      })
+    };
+    Json/Encode.null
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Ok(43))
+  }),
+  Test.test("fail to decode a string", fn {
+    let decoder = Json/Decode.string;
+    Json/Encode.null
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Err(Failure("a string")))
+  }),
+  Test.test("fails to decode an object when json is not an object", fn {
+    let decoder = Json/Decode.field("some-field", Json/Decode.string);
+    Json/Encode.null
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Err(Failure("an object")))
+  }),
+  Test.test("fails to decode an object field when field does not exist", fn {
+    let decoder = Json/Decode.field("my-field", Json/Decode.string);
+    Json/Encode.object([])
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Err(Failure("an object with a 'my-field' field")))
+  }),
+  Test.test(
+    "fails to decode an object field when field has the wrong type",
+    fn {
+      let decoder = Json/Decode.field("x", Json/Decode.string);
+      Json/Encode.object([("x", Json/Encode.null)])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Err(Field("x", Failure("a string"))))
+    },
+  ),
+  Test.test("succeed to decode an object field", fn {
+    let field_name = "my-field";
+    let decoder = Json/Decode.field(field_name, Json/Decode.string);
+    Json/Encode.object([(field_name, Json/Encode.string("field-value"))])
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Ok("field-value"))
+  }),
+  Test.test("succeed to decode multiple fields", fn {
+    let decoder = {
+      let#Json/Decode.and_then x = Json/Decode.field("x", Json/Decode.string);
+      let#Json/Decode.and_then Unit = Json/Decode.field("y", Json/Decode.null);
+      let#Json/Decode.and_then z = Json/Decode.of(42);
+      Json/Decode.of((x, z))
+    };
+    Json/Encode.object([
+      ("x", Json/Encode.string("field-value")),
+      ("y", Json/Encode.null),
+    ])
+    |> Json/Decode.decode(decoder)
+    |> Expect.equal(Ok(("field-value", 42)))
+  }),
+  Test.test("fail to parse a json from string", fn {
+    Json/Decode.parse_json("not-a-json")
+    |> Expect.equal(
+      Err("Unexpected token 'o', \"not-a-json\" is not valid JSON"),
+    )
+  }),
+  Test.test("fail to parse a json from string when decoding", fn {
+    Json/Decode.decode_string("not-a-json", Json/Decode.of(Unit))
+    |> Expect.equal(
+      Err(Failure("Unexpected token 'o', \"not-a-json\" is not valid JSON")),
+    )
+  }),
+  Test.test("succeed to decode a json from string", fn {
+    let decoder = Json/Decode.field("x", Json/Decode.int);
+    Json/Decode.decode_string("{\"x\": 42 }", decoder)
+    |> Expect.equal(Ok(42))
+  }),
+  Test.describe("one_of", [
+    Test.test("fails when empty", fn {
+      let decoder = Json/Decode.one_of([]);
+      Json/Encode.null
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Err(Failure("a non-empty list of decoders")))
+    }),
+    Test.test("succeeds the first clauses matches", fn {
+      let decoder = Json/Decode.one_of([Json/Decode.string]);
+      Json/Encode.string("my string")
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok("my string"))
+    }),
+    Test.test("succeeds when at least one clause matches the json", fn {
+      let decoder = Json/Decode.one_of([
+        Json/Decode.string,
+        Json/Decode.null
+        |> Json/Decode.map(fn _ {
+          "got null"
+        }),
+      ]);
+      Json/Encode.null
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok("got null"))
+    }),
+    Test.test("fails when no clauses match ", fn {
+      let decoder = Json/Decode.one_of([
+        Json/Decode.int,
+        Json/Decode.null
+        |> Json/Decode.map(fn _ {
+          0
+        }),
+      ]);
+      Json/Encode.object([])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Err(OneOf([Failure("a number"), Failure("null")])))
+    }),
+  ]),
+])
+
+pub let main = Test.run(decode_tests)

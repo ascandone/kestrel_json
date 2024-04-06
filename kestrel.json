@@ -1,0 +1,11 @@
+{
+  "type": "application",
+  "source-directories": [
+    "src", "test"
+  ],
+  "dependencies": {
+    "kestrel_core": {
+      "git": "https://github.com/ascandone/kestrel-core.git"
+    }
+  }
+}
