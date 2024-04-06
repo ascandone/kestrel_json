@@ -1,8 +1,8 @@
 {
-  "type": "application",
-  "source-directories": [
-    "src", "test"
-  ],
+  "type": "package",
+  "name": "kestrel_json",
+  "version": "0.0.1",
+  "source-directories": ["src", "test"],
   "dependencies": {
     "kestrel_core": {
       "git": "https://github.com/ascandone/kestrel-core.git"
