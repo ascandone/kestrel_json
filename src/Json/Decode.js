@@ -1,3 +1,14 @@
+const Json$Decode$bool = Json$Decode$Decoder(({ repr: json }) => {
+  if (typeof json !== "boolean") {
+    return {
+      $: "Err",
+      a0: { $: "Failure", a0: "a boolean" },
+    };
+  }
+
+  return { $: "Ok", a0: json };
+});
+
 const Json$Decode$string = Json$Decode$Decoder(({ repr: json }) => {
   if (typeof json !== "string") {
     return {

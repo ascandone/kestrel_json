@@ -25,6 +25,8 @@ pub let fail = fn reason {
 
 extern pub let null: Decoder<Unit>
 
+extern pub let bool: Decoder<Bool>
+
 extern pub let string: Decoder<String>
 
 extern pub let int: Decoder<Int>

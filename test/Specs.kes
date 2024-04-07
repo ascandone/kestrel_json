@@ -38,6 +38,20 @@ pub let decode_tests = Test.describe("Json/Decode", [
       |> Expect.equal(Err(Failure("a string")))
     }),
   ]),
+  Test.describe("bool", [
+    Test.test("succeed to decode booleans", fn {
+      let decoder = Json/Decode.bool;
+      Json/Encode.bool(True)
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok(True))
+    }),
+    Test.test("fail to decode values different than booleans", fn {
+      let decoder = Json/Decode.bool;
+      Json/Encode.null
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Err(Failure("a boolean")))
+    }),
+  ]),
   Test.describe("float", [
     Test.test("succeed to decode a float", fn {
       let decoder = Json/Decode.float;

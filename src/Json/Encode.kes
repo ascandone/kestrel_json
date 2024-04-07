@@ -2,9 +2,12 @@ import Tuple.{Tuple2(..)}
 
 extern pub type Json
 
+/// Cast primitive values to json
 extern let wrap: Fn(a) -> Json
 
 extern pub let null: Json
+
+pub let bool: Fn(Bool) -> Json = wrap
 
 pub let string: Fn(String) -> Json = wrap
 
