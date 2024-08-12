@@ -1,22 +1,18 @@
-class Json$Encode$Json {
-  constructor(repr) {
-    this.repr = repr;
-  }
-}
+const Show_Json$Encode$Json = (j) => JSON.stringify(j);
 
-const Json$Encode$null = new Json$Encode$Json(null);
+const Json$Encode$null = null;
 
 function Json$Encode$wrap(str) {
-  return new Json$Encode$Json(str);
+  return str;
 }
 
 function Json$Encode$list(mapper, list) {
   const arr = [];
   while (list !== List$Nil) {
-    arr.push(list.a0);
+    arr.push(mapper(list.a0));
     list = list.a1;
   }
-  return new Json$Encode$Json(arr);
+  return arr;
 }
 
 function Json$Encode$object(fields) {
@@ -24,9 +20,9 @@ function Json$Encode$object(fields) {
 
   while (fields !== List$Nil) {
     const { a0: fieldName, a1: json } = fields.a0;
-    o[fieldName] = json.repr;
+    o[fieldName] = json;
     fields = fields.a1;
   }
 
-  return new Json$Encode$Json(o);
+  return o;
 }

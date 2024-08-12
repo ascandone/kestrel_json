@@ -1,4 +1,4 @@
-const Json$Decode$bool = Json$Decode$Decoder(({ repr: json }) => {
+const Json$Decode$bool = Json$Decode$Decoder((json) => {
   if (typeof json !== "boolean") {
     return {
       $: "Err",
@@ -9,7 +9,7 @@ const Json$Decode$bool = Json$Decode$Decoder(({ repr: json }) => {
   return { $: "Ok", a0: json };
 });
 
-const Json$Decode$string = Json$Decode$Decoder(({ repr: json }) => {
+const Json$Decode$string = Json$Decode$Decoder((json) => {
   if (typeof json !== "string") {
     return {
       $: "Err",
@@ -20,7 +20,7 @@ const Json$Decode$string = Json$Decode$Decoder(({ repr: json }) => {
   return { $: "Ok", a0: json };
 });
 
-const Json$Decode$float = Json$Decode$Decoder(({ repr: json }) => {
+const Json$Decode$float = Json$Decode$Decoder((json) => {
   if (typeof json !== "number") {
     return {
       $: "Err",
@@ -31,7 +31,7 @@ const Json$Decode$float = Json$Decode$Decoder(({ repr: json }) => {
   return { $: "Ok", a0: json };
 });
 
-const Json$Decode$int = Json$Decode$Decoder(({ repr: json }) => {
+const Json$Decode$int = Json$Decode$Decoder((json) => {
   if (typeof json !== "number") {
     return {
       $: "Err",
@@ -50,7 +50,7 @@ const Json$Decode$int = Json$Decode$Decoder(({ repr: json }) => {
   return { $: "Ok", a0: json };
 });
 
-const Json$Decode$null = Json$Decode$Decoder(({ repr: json }) => {
+const Json$Decode$null = Json$Decode$Decoder((json) => {
   if (json !== null) {
     return {
       $: "Err",
@@ -62,7 +62,7 @@ const Json$Decode$null = Json$Decode$Decoder(({ repr: json }) => {
 });
 
 function Json$Decode$field(fieldName, fieldDecoder) {
-  return Json$Decode$Decoder(({ repr: json }) => {
+  return Json$Decode$Decoder((json) => {
     if (json === null || typeof json !== "object") {
       return {
         $: "Err",
@@ -80,7 +80,7 @@ function Json$Decode$field(fieldName, fieldDecoder) {
       };
     }
 
-    const res = fieldDecoder.a0(new Json$Encode$Json(json[fieldName]));
+    const res = fieldDecoder.a0(json[fieldName]);
     if (res.$ === "Err") {
       return {
         $: "Err",
@@ -97,7 +97,7 @@ function Json$Decode$field(fieldName, fieldDecoder) {
 }
 
 function Json$Decode$optional_field(fieldName, fieldDecoder) {
-  return Json$Decode$Decoder(({ repr: json }) => {
+  return Json$Decode$Decoder((json) => {
     if (json === null || typeof json !== "object") {
       return {
         $: "Err",
@@ -109,7 +109,7 @@ function Json$Decode$optional_field(fieldName, fieldDecoder) {
       return { $: "Ok", a0: Option$None };
     }
 
-    const res = fieldDecoder.a0(new Json$Encode$Json(json[fieldName]));
+    const res = fieldDecoder.a0(json[fieldName]);
     if (res.$ === "Err") {
       return {
         $: "Err",
@@ -129,7 +129,7 @@ function Json$Decode$optional_field(fieldName, fieldDecoder) {
 }
 
 function Json$Decode$list(decoder) {
-  return Json$Decode$Decoder(({ repr: json }) => {
+  return Json$Decode$Decoder((json) => {
     if (!Array.isArray(json)) {
       return {
         $: "Err",
@@ -141,9 +141,7 @@ function Json$Decode$list(decoder) {
 
     for (let i = json.length - 1; i >= 0; i--) {
       const value = json[i];
-      const decoded = decoder.a0(
-        value instanceof Json$Encode$Json ? value : new Json$Encode$Json(value)
-      );
+      const decoded = decoder.a0(value);
 
       if (decoded.$ === "Err") {
         return {
@@ -172,7 +170,7 @@ function Json$Decode$parse_json(str) {
     const parsed = JSON.parse(str);
     return {
       $: "Ok",
-      a0: new Json$Encode$Json(parsed),
+      a0: parsed,
     };
   } catch (error) {
     if (!(error instanceof SyntaxError)) {

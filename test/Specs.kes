@@ -146,6 +146,15 @@ pub let decode_tests = Test.describe("Json/Decode", [
       |> Json/Decode.decode(decoder)
       |> Expect.equal(Ok([10, 20, 30]))
     }),
+    Test.test("handles mapper", fn {
+      let decoder = Json/Decode.list(Json/Decode.int);
+      let mapper = fn x {
+        Json/Encode.int(x * 10)
+      };
+      Json/Encode.list(mapper, [1, 2, 3])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok([10, 20, 30]))
+    }),
     Test.test("succeed to decode a list of Json values", fn {
       let decoder = Json/Decode.list(Json/Decode.int);
       Json/Encode.list(identity, [Json/Encode.int(0), Json/Encode.int(1)])
