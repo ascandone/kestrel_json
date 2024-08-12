@@ -10,7 +10,14 @@ let identity = fn x {
 let require_err = fn value, to_body {
   match value {
     Err(err) => to_body(err),
-    Ok(_) => Expect.fail("Expected an error"),
+    Ok(_) => Expect.fail("Expected Err(_)"),
+  }
+}
+
+let require_ok = fn value, to_body {
+  match value {
+    Ok(value) => to_body(value),
+    Err(_) => Expect.fail("Expected Ok(_)"),
   }
 }
 
@@ -209,6 +216,16 @@ pub let decode_tests = Test.describe("Json/Decode", [
       |> Expect.equal(Ok(42))
     }),
   ]),
+  Test.test("decode json", fn {
+    let decoder = Json/Decode.json;
+    let#require_ok json = {
+      Json/Encode.null
+      |> Json/Decode.decode(decoder)
+    };
+    json
+    |> Json/Decode.decode(Json/Decode.null)
+    |> Expect.equal(Ok(Unit))
+  }),
   Test.describe("one_of", [
     Test.test("fails when empty", fn {
       let decoder = Json/Decode.one_of([]);

@@ -44,6 +44,8 @@ extern pub let decode: Fn(Json, Decoder<a>) -> Result<a, Error>
 
 extern pub let parse_json: Fn(String) -> Result<Json, String>
 
+pub let json = Decoder(Ok)
+
 pub let one_of = fn decoders {
   Decoder(fn json {
     let helper = fn decoders, errs_acc {
