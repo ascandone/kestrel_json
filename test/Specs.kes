@@ -7,6 +7,13 @@ let identity = fn x {
   x
 }
 
+let require_err = fn value, to_body {
+  match value {
+    Err(err) => to_body(err),
+    Ok(_) => Expect.fail("Expected an error"),
+  }
+}
+
 pub let decode_tests = Test.describe("Json/Decode", [
   Test.describe("of", [
     Test.test("always succeeds", fn {
@@ -19,9 +26,12 @@ pub let decode_tests = Test.describe("Json/Decode", [
   Test.describe("fail", [
     Test.test("always fails", fn {
       let decoder = Json/Decode.fail("failure reason");
-      Json/Encode.null
-      |> Json/Decode.decode(decoder)
-      |> Expect.equal(Err(Failure("failure reason")))
+      let#require_err err = {
+        Json/Encode.null
+        |> Json/Decode.decode(decoder)
+      };
+      err
+      |> Expect.equal(Failure("failure reason"))
     }),
   ]),
   Test.describe("string", [
@@ -174,10 +184,9 @@ pub let decode_tests = Test.describe("Json/Decode", [
   ]),
   Test.describe("parsed json", [
     Test.test("fail to parse a json from string", fn {
-      Json/Decode.parse_json("not-a-json")
-      |> Expect.equal(
-        Err("Unexpected token 'o', \"not-a-json\" is not valid JSON"),
-      )
+      let#require_err err = Json/Decode.parse_json("not-a-json");
+      err
+      |> Expect.equal("Unexpected token 'o', \"not-a-json\" is not valid JSON")
     }),
     Test.test("fail to parse a json from string when decoding", fn {
       Json/Decode.decode_string("not-a-json", Json/Decode.of(Unit))
@@ -194,9 +203,12 @@ pub let decode_tests = Test.describe("Json/Decode", [
   Test.describe("one_of", [
     Test.test("fails when empty", fn {
       let decoder = Json/Decode.one_of([]);
-      Json/Encode.null
-      |> Json/Decode.decode(decoder)
-      |> Expect.equal(Err(Failure("a non-empty list of decoders")))
+      let#require_err err = {
+        Json/Encode.null
+        |> Json/Decode.decode(decoder)
+      };
+      err
+      |> Expect.equal(Failure("a non-empty list of decoders"))
     }),
     Test.test("succeeds the first clauses matches", fn {
       let decoder = Json/Decode.one_of([Json/Decode.string]);
