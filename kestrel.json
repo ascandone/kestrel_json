@@ -5,7 +5,7 @@
   "source-directories": ["src", "test"],
   "dependencies": {
     "kestrel_core": {
-      "git": "https://github.com/ascandone/kestrel_json"
+      "git": "https://github.com/ascandone/kestrel_core"
     }
   }
 }
