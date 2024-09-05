@@ -7,6 +7,20 @@ let identity = fn x {
   x
 }
 
+let require_err = fn value, to_body {
+  match value {
+    Err(err) => to_body(err),
+    Ok(_) => Expect.fail("Expected Err(_)"),
+  }
+}
+
+let require_ok = fn value, to_body {
+  match value {
+    Ok(value) => to_body(value),
+    Err(_) => Expect.fail("Expected Ok(_)"),
+  }
+}
+
 pub let decode_tests = Test.describe("Json/Decode", [
   Test.describe("of", [
     Test.test("always succeeds", fn {
@@ -19,9 +33,12 @@ pub let decode_tests = Test.describe("Json/Decode", [
   Test.describe("fail", [
     Test.test("always fails", fn {
       let decoder = Json/Decode.fail("failure reason");
-      Json/Encode.null
-      |> Json/Decode.decode(decoder)
-      |> Expect.equal(Err(Failure("failure reason")))
+      let#require_err err = {
+        Json/Encode.null
+        |> Json/Decode.decode(decoder)
+      };
+      err
+      |> Expect.equal(Failure("failure reason"))
     }),
   ]),
   Test.describe("string", [
@@ -136,6 +153,15 @@ pub let decode_tests = Test.describe("Json/Decode", [
       |> Json/Decode.decode(decoder)
       |> Expect.equal(Ok([10, 20, 30]))
     }),
+    Test.test("handles mapper", fn {
+      let decoder = Json/Decode.list(Json/Decode.int);
+      let mapper = fn x {
+        Json/Encode.int(x * 10)
+      };
+      Json/Encode.list(mapper, [1, 2, 3])
+      |> Json/Decode.decode(decoder)
+      |> Expect.equal(Ok([10, 20, 30]))
+    }),
     Test.test("succeed to decode a list of Json values", fn {
       let decoder = Json/Decode.list(Json/Decode.int);
       Json/Encode.list(identity, [Json/Encode.int(0), Json/Encode.int(1)])
@@ -174,10 +200,9 @@ pub let decode_tests = Test.describe("Json/Decode", [
   ]),
   Test.describe("parsed json", [
     Test.test("fail to parse a json from string", fn {
-      Json/Decode.parse_json("not-a-json")
-      |> Expect.equal(
-        Err("Unexpected token 'o', \"not-a-json\" is not valid JSON"),
-      )
+      let#require_err err = Json/Decode.parse_json("not-a-json");
+      err
+      |> Expect.equal("Unexpected token 'o', \"not-a-json\" is not valid JSON")
     }),
     Test.test("fail to parse a json from string when decoding", fn {
       Json/Decode.decode_string("not-a-json", Json/Decode.of(Unit))
@@ -191,12 +216,25 @@ pub let decode_tests = Test.describe("Json/Decode", [
       |> Expect.equal(Ok(42))
     }),
   ]),
+  Test.test("decode json", fn {
+    let decoder = Json/Decode.json;
+    let#require_ok json = {
+      Json/Encode.null
+      |> Json/Decode.decode(decoder)
+    };
+    json
+    |> Json/Decode.decode(Json/Decode.null)
+    |> Expect.equal(Ok(Unit))
+  }),
   Test.describe("one_of", [
     Test.test("fails when empty", fn {
       let decoder = Json/Decode.one_of([]);
-      Json/Encode.null
-      |> Json/Decode.decode(decoder)
-      |> Expect.equal(Err(Failure("a non-empty list of decoders")))
+      let#require_err err = {
+        Json/Encode.null
+        |> Json/Decode.decode(decoder)
+      };
+      err
+      |> Expect.equal(Failure("a non-empty list of decoders"))
     }),
     Test.test("succeeds the first clauses matches", fn {
       let decoder = Json/Decode.one_of([Json/Decode.string]);
