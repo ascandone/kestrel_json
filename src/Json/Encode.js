@@ -8,9 +8,9 @@ function Json$Encode$wrap(str) {
 
 function Json$Encode$list(mapper, list) {
   const arr = [];
-  while (list !== List$Nil) {
-    arr.push(mapper(list.a0));
-    list = list.a1;
+  while (list.$ !== 0) {
+    arr.push(mapper(list._0));
+    list = list._1;
   }
   return arr;
 }
@@ -19,9 +19,9 @@ function Json$Encode$object(fields) {
   let o = {};
 
   while (fields !== List$Nil) {
-    const { a0: fieldName, a1: json } = fields.a0;
+    const { _0: fieldName, _1: json } = fields._0;
     o[fieldName] = json;
-    fields = fields.a1;
+    fields = fields._1;
   }
 
   return o;

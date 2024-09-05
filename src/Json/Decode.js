@@ -1,139 +1,139 @@
-const Json$Decode$bool = Json$Decode$Decoder((json) => {
+const Json$Decode$bool = (json) => {
   if (typeof json !== "boolean") {
     return {
-      $: "Err",
-      a0: { $: "Failure", a0: "a boolean" },
+      $: 1,
+      _0: { $: 0, _0: "a boolean" },
     };
   }
 
-  return { $: "Ok", a0: json };
-});
+  return { $: 0, _0: json };
+};
 
-const Json$Decode$string = Json$Decode$Decoder((json) => {
+const Json$Decode$string = (json) => {
   if (typeof json !== "string") {
     return {
-      $: "Err",
-      a0: { $: "Failure", a0: "a string" },
+      $: 1,
+      _0: { $: 0, _0: "a string" },
     };
   }
 
-  return { $: "Ok", a0: json };
-});
+  return { $: 0, _0: json };
+};
 
-const Json$Decode$float = Json$Decode$Decoder((json) => {
+const Json$Decode$float = (json) => {
   if (typeof json !== "number") {
     return {
-      $: "Err",
-      a0: { $: "Failure", a0: "a number" },
+      $: 1,
+      _0: { $: 0, _0: "a number" },
     };
   }
 
-  return { $: "Ok", a0: json };
-});
+  return { $: 0, _0: json };
+};
 
-const Json$Decode$int = Json$Decode$Decoder((json) => {
+const Json$Decode$int = (json) => {
   if (typeof json !== "number") {
     return {
-      $: "Err",
-      a0: { $: "Failure", a0: "a number" },
+      $: 1,
+      _0: { $: 0, _0: "a number" },
     };
   }
 
   const isInt = Math.trunc(json) === json;
   if (!isInt) {
     return {
-      $: "Err",
-      a0: { $: "Failure", a0: "an int" },
+      $: 1,
+      _0: { $: 0, _0: "an int" },
     };
   }
 
-  return { $: "Ok", a0: json };
-});
+  return { $: 0, _0: json };
+};
 
-const Json$Decode$null = Json$Decode$Decoder((json) => {
+const Json$Decode$null = (json) => {
   if (json !== null) {
     return {
-      $: "Err",
-      a0: { $: "Failure", a0: "null" },
+      $: 1,
+      _0: { $: 0, _0: "null" },
     };
   }
 
-  return { $: "Ok", a0: json };
-});
+  return { $: 0, _0: json };
+};
 
 function Json$Decode$field(fieldName, fieldDecoder) {
-  return Json$Decode$Decoder((json) => {
+  return (json) => {
     if (json === null || typeof json !== "object") {
       return {
-        $: "Err",
-        a0: { $: "Failure", a0: "an object" },
+        $: 1,
+        _0: { $: 0, _0: "an object" },
       };
     }
 
     if (!(fieldName in json)) {
       return {
-        $: "Err",
-        a0: {
-          $: "Failure",
-          a0: `an object with a '${fieldName}' field`,
+        $: 1,
+        _0: {
+          $: 0,
+          _0: `an object with a '${fieldName}' field`,
         },
       };
     }
 
-    const res = fieldDecoder.a0(json[fieldName]);
-    if (res.$ === "Err") {
+    const res = fieldDecoder(json[fieldName]);
+    if (res.$ === 1) {
       return {
-        $: "Err",
-        a0: {
-          $: "Field",
-          a0: fieldName,
-          a1: res.a0,
+        $: 1,
+        _0: {
+          $: 1,
+          _0: fieldName,
+          _1: res._0,
         },
       };
     }
 
     return res;
-  });
+  };
 }
 
 function Json$Decode$optional_field(fieldName, fieldDecoder) {
-  return Json$Decode$Decoder((json) => {
+  return (json) => {
     if (json === null || typeof json !== "object") {
       return {
-        $: "Err",
-        a0: { $: "Failure", a0: "an object" },
+        $: 1,
+        _0: { $: 0, _0: "an object" },
       };
     }
 
     if (!(fieldName in json)) {
-      return { $: "Ok", a0: Option$None };
+      return { $: 0, _0: Option$None };
     }
 
-    const res = fieldDecoder.a0(json[fieldName]);
-    if (res.$ === "Err") {
+    const res = fieldDecoder(json[fieldName]);
+    if (res.$ === 1) {
       return {
-        $: "Err",
-        a0: {
-          $: "Field",
-          a0: fieldName,
-          a1: res.a0,
+        $: 1,
+        _0: {
+          $: 1,
+          _0: fieldName,
+          _1: res._0,
         },
       };
     }
 
     return {
-      $: "Ok",
-      a0: { $: "Some", a0: res.a0 },
+      $: 0,
+      _0: { $: 0, _0: res._0 },
     };
-  });
+  };
 }
 
 function Json$Decode$list(decoder) {
-  return Json$Decode$Decoder((json) => {
+  return (json) => {
     if (!Array.isArray(json)) {
       return {
-        $: "Err",
-        a0: { $: "Failure", a0: "a list" },
+        $: 1,
+        _0: { $: 0, _0: "a list" },
       };
     }
 
@@ -141,36 +141,36 @@ function Json$Decode$list(decoder) {
 
     for (let i = json.length - 1; i >= 0; i--) {
       const value = json[i];
-      const decoded = decoder.a0(value);
+      const decoded = decoder(value);
 
-      if (decoded.$ === "Err") {
+      if (decoded.$ === 1) {
         return {
-          $: "Err",
-          a0: {
-            $: "Index",
-            a0: 1,
-            a1: decoded.a0,
+          $: 1,
+          _0: {
+            $: 2,
+            _0: 1,
+            _1: decoded._0,
           },
         };
       }
 
-      list = { $: "Cons", a0: decoded.a0, a1: list };
+      list = { $: 1, _0: decoded._0, _1: list };
     }
 
-    return { $: "Ok", a0: list };
-  });
+    return { $: 0, _0: list };
+  };
 }
 
 function Json$Decode$decode(json, decoder) {
-  return decoder.a0(json);
+  return decoder(json);
 }
 
 function Json$Decode$parse_json(str) {
   try {
     const parsed = JSON.parse(str);
     return {
-      $: "Ok",
-      a0: parsed,
+      $: 0,
+      _0: parsed,
     };
   } catch (error) {
     if (!(error instanceof SyntaxError)) {
@@ -178,8 +178,8 @@ function Json$Decode$parse_json(str) {
     }
 
     return {
-      $: "Err",
-      a0: error.message,
+      $: 1,
+      _0: error.message,
     };
   }
 }
