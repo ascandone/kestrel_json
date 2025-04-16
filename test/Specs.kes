@@ -21,7 +21,24 @@ let require_ok = fn value, to_body {
   }
 }
 
-pub let decode_tests = Test.describe("Json/Decode", [
+let encode_tests = Test.describe("Json/Encode", [
+  Test.describe("encode to string", [
+    Test.test("with nest 0", fn {
+      let j = Json/Encode.object([("x", Json/Encode.bool(True))]);
+
+      Json/Encode.encode(j, 0)
+      |> Expect.equal("{\"x\":true}")
+    }),
+    Test.test("with nest 2", fn {
+      let j = Json/Encode.object([("x", Json/Encode.bool(True))]);
+
+      Json/Encode.encode(j, 2)
+      |> Expect.equal("{\n  \"x\": true\n}")
+    }),
+  ]),
+])
+
+let decode_tests = Test.describe("Json/Decode", [
   Test.describe("of", [
     Test.test("always succeeds", fn {
       let decoder = Json/Decode.of(42);
@@ -269,4 +286,8 @@ pub let decode_tests = Test.describe("Json/Decode", [
   ]),
 ])
 
-pub let main = Test.run(decode_tests)
+pub let main = {
+  [encode_tests, decode_tests]
+  |> Test.concat()
+  |> Test.run()
+}

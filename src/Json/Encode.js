@@ -26,3 +26,7 @@ function Json$Encode$object(fields) {
 
   return o;
 }
+
+function Json$Encode$encode(json, i) {
+  return JSON.stringify(json, null, i);
+}
