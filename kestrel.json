@@ -2,10 +2,12 @@
   "type": "package",
   "name": "kestrel_json",
   "version": "0.0.1",
-  "source-directories": ["src", "test"],
+  "sources": ["src", "test"],
+  "description": "Utilities for encoding/decoding json",
+  "licence": "MIT",
+  "tags": ["json"],
   "dependencies": {
-    "kestrel_core": {
-      "git": "https://github.com/ascandone/kestrel_core"
-    }
-  }
+    "kestrel_core": "0.0.1"
+  },
+  "exposedModules": ["Json/Decode", "Json/Encode"]
 }

@@ -1,14 +1,14 @@
 import Json/Encode.{Json}
 
-pub(..) type Error {
+pub(..) enum Error {
   Failure(String),
   Field(String, Error),
   Index(Int, Error),
   OneOf(List<Error>),
 }
 
-pub type Decoder<a> {
-  Decoder(Fn(Json) -> Result<a, Error>),
+pub enum Decoder<a> {
+  Decoder((Json) -> Result<a, Error>),
 }
 
 pub let of = fn x {
@@ -23,26 +23,46 @@ pub let fail = fn reason {
   })
 }
 
-extern pub let null: Decoder<Unit>
+@extern
+@type Decoder<Unit>
+pub let null
 
-extern pub let bool: Decoder<Bool>
+@extern
+@type Decoder<Bool>
+pub let bool
 
-extern pub let string: Decoder<String>
+@extern
+@type Decoder<String>
+pub let string
 
-extern pub let int: Decoder<Int>
+@extern
+@type Decoder<Int>
+pub let int
 
-extern pub let float: Decoder<Float>
+@extern
+@type Decoder<Float>
+pub let float
 
-extern pub let field: Fn(String, Decoder<a>) -> Decoder<a>
+@extern
+@type (String, Decoder<a>) -> Decoder<a>
+pub let field
 
-extern pub let list: Fn(Decoder<a>) -> Decoder<List<a>>
+@extern
+@type (Decoder<a>) -> Decoder<List<a>>
+pub let list
 
-extern pub let optional_field: Fn(String, Decoder<a>) -> Decoder<Option<a>>
+@extern
+@type (String, Decoder<a>) -> Decoder<Option<a>>
+pub let optional_field
 
 /// Run a decoder on a `Json` value
-extern pub let decode: Fn(Json, Decoder<a>) -> Result<a, Error>
+@extern
+@type (Json, Decoder<a>) -> Result<a, Error>
+pub let decode
 
-extern pub let parse_json: Fn(String) -> Result<Json, String>
+@extern
+@type (String) -> Result<Json, String>
+pub let parse_json
 
 pub let json = Decoder(Ok)
 
@@ -50,15 +70,15 @@ pub let one_of = fn decoders {
   Decoder(fn json {
     let helper = fn decoders, errs_acc {
       match decoders {
-        Nil => Err(errs_acc),
-        decoder :: decoders => match decode(json, decoder) {
-          Err(err) => helper(decoders, err :: errs_acc),
+        [] => Err(errs_acc),
+        [decoder, ..decoders] => match decode(json, decoder) {
+          Err(err) => helper(decoders, [err, ..errs_acc]),
           Ok(decoded) => Ok(decoded),
         },
       }
     };
     match decoders {
-      Nil => Err(Failure("a non-empty list of decoders")),
+      [] => Err(Failure("a non-empty list of decoders")),
       decoders => {
         decoders
         |> List.reverse()

@@ -3,20 +3,34 @@ import Tuple.{Tuple2(..)}
 extern pub type Json
 
 /// Cast primitive values to json
-extern let wrap: Fn(a) -> Json
+@extern
+@type (a) -> Json
+let wrap
 
-extern pub let null: Json
+@extern
+@type Json
+pub let null
 
-pub let bool: Fn(Bool) -> Json = wrap
+@type (Bool) -> Json
+pub let bool = wrap
 
-pub let string: Fn(String) -> Json = wrap
+@type (String) -> Json
+pub let string = wrap
 
-pub let float: Fn(Float) -> Json = wrap
+@type (Float) -> Json
+pub let float = wrap
 
-pub let int: Fn(Int) -> Json = wrap
+@type (Int) -> Json
+pub let int = wrap
 
-extern pub let list: Fn(Fn(a) -> Json, List<a>) -> Json
+@extern
+@type ((a) -> Json, List<a>) -> Json
+pub let list
 
-extern pub let object: Fn(List<Tuple2<String, Json>>) -> Json
+@extern
+@type (List<Tuple2<String, Json>>) -> Json
+pub let object
 
-extern pub let encode: Fn(Json, Int) -> String
+@extern
+@type (Json, Int) -> String
+pub let encode
